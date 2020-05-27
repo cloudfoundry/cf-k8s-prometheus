@@ -3,9 +3,12 @@ FROM golang:1.13 as builder
 RUN mkdir /workspace
 WORKDIR /workspace
 
-RUN git clone https://github.com/prometheus/statsd_exporter.git && \
+ARG VERSION
+RUN test -n "$VERSION"
+
+RUN git clone --single-branch --branch $VERSION --depth 1 https://github.com/prometheus/statsd_exporter.git && \
     cd statsd_exporter && \
-    go build
+    make common-build
 
 FROM ubuntu:bionic
 

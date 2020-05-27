@@ -4,16 +4,17 @@ DEPLAB=${DEPLAB:-true}
 
 function buildAndReplaceImage {
     image=$1
-    srcFolder=$2
-    dockerfile=$3
-    yttValuesRef=$4
+    version=$2
+    srcFolder=$3
+    dockerfile=$4
+    yttValuesRef=$5
 
-    docker build -t $DOCKER_ORG/$image:latest $srcFolder -f $srcFolder/$dockerfile
+    docker build --build-arg VERSION=$version -t $DOCKER_ORG/$image:$version $srcFolder -f $srcFolder/$dockerfile
     if [ -n "$DEPLAB" ]; then
-        deplab --image $DOCKER_ORG/$image:latest --git ${REPO_DIR} --output-tar /tmp/$image --tag $DOCKER_ORG/$image:latest
-        docker load -i /tmp/$image
+        deplab --image $DOCKER_ORG/$image:$version --git ${REPO_DIR} --output-tar /tmp/$image.tgz --tag $DOCKER_ORG/$image:$version
+        docker load -i /tmp/$image.tgz
     fi
-    docker push $DOCKER_ORG/$image:latest
+    docker push $DOCKER_ORG/$image:$version
 }
 
-buildAndReplaceImage statsd_exporter ${REPO_DIR}/exporters/statsd_exporter Dockerfile statsd_exporter
+buildAndReplaceImage statsd_exporter v0.15.0 ${REPO_DIR}/exporters/statsd_exporter Dockerfile statsd_exporter
