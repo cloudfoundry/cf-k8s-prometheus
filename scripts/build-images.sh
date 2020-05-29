@@ -7,7 +7,6 @@ function buildAndReplaceImage {
     version=$2
     srcFolder=$3
     dockerfile=$4
-    yttValuesRef=$5
 
     docker build --build-arg VERSION=$version -t $DOCKER_ORG/$image:$version $srcFolder -f $srcFolder/$dockerfile
     if [ -n "$DEPLAB" ]; then
