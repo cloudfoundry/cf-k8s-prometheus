@@ -1,31 +1,63 @@
 #@ load("@ytt:data", "data")
 
 #@ load("@ytt:overlay", "overlay")
-#@overlay/match by=overlay.and_op(overlay.subset({"metadata":{"name":"cf-system"}}), overlay.subset({"kind": "Namespace"}))
+#@overlay/match by=overlay.and_op(overlay.subset({"metadata":{"name":"cf-workloads"}}), overlay.subset({"kind": "Namespace"}))
 ---
 metadata:
   labels:
     #@overlay/match missing_ok=True
-    cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
+    cf-for-k8s.cloudfoundry.org/cf-workloads-ns: ""
 
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prometheus
+spec:
+  labels:
+    cf-for-k8s.cloudfoundry.org/prometheus-ns: ""
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-prometheus-scrape
+  name: allow-cf-workloads-metrics-ingress-and-egress
   namespace: #@ data.values.workloads_namespace
 spec:
   podSelector: {}
   policyTypes:
   - Ingress
+  - Egress
   ingress:
   - from:
     - namespaceSelector:
         matchLabels:
-          cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
-      podSelector:
+          cf-for-k8s.cloudfoundry.org/prometheus-ns: ""
+  egress:
+  - to:
+    - namespaceSelector:
         matchLabels:
-          what-am-i: prometheus
+          cf-for-k8s.cloudfoundry.org/prometheus-ns: ""
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-ingress-and-egress
+  namespace: prometheus
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          cf-for-k8s.cloudfoundry.org/cf-workloads-ns: ""
+  egress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          cf-for-k8s.cloudfoundry.org/cf-workloads-ns: ""
 ---
 #! Source: prometheus/templates/server-serviceaccount.yaml
 apiVersion: v1
@@ -35,7 +67,7 @@ metadata:
     component: "server"
     app: prometheus
   name: cf-for-k8s-prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: prometheus
   annotations:
     {}
 ---
@@ -48,7 +80,7 @@ metadata:
     component: "server"
     app: prometheus
   name: cf-for-k8s-prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: prometheus
 data:
   alerting_rules.yml: |
     {}
@@ -312,7 +344,7 @@ metadata:
     component: "server"
     app: prometheus
   name: cf-for-k8s-prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: prometheus
 spec:
   accessModes:
     - ReadWriteOnce
@@ -369,7 +401,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: cf-for-k8s-prometheus-server
-    namespace: #@ data.values.system_namespace
+    namespace: prometheus
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -383,7 +415,7 @@ metadata:
     component: "server"
     app: prometheus
   name: cf-for-k8s-prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: prometheus
 spec:
   ports:
     - name: http
@@ -405,7 +437,7 @@ metadata:
     component: "server"
     app: prometheus
   name: cf-for-k8s-prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: prometheus
 spec:
   selector:
     matchLabels:
