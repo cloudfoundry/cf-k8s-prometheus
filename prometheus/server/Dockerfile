@@ -1,7 +1,11 @@
 # Build Prometheus from source
 FROM golang:1.14.2 as build
 WORKDIR /
-RUN git clone https://github.com/prometheus/prometheus.git \
+
+ARG VERSION
+RUN test -n "$VERSION"
+
+RUN git clone --single-branch --branch $VERSION --depth 1 https://github.com/prometheus/prometheus.git \
  && cd prometheus \
  && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
  && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \

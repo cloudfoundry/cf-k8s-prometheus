@@ -422,7 +422,7 @@ spec:
       serviceAccountName: cf-for-k8s-prometheus-server
       containers:
         - name: prometheus-server
-          image: "oratos/prometheus-server:latest"
+          image: "oratos/prometheus-server:v2.20.1"
           imagePullPolicy: "IfNotPresent"
           args:
             - --storage.tsdb.retention.time=15d

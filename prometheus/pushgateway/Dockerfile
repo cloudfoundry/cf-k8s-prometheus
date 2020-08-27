@@ -1,7 +1,11 @@
 # Build Prometheus from source
 FROM golang:1.14.2 as build
+
+ARG VERSION
+RUN test -n "$VERSION"
+
 WORKDIR /
-RUN git clone https://github.com/prometheus/pushgateway.git \
+RUN git clone --single-branch --branch $VERSION --depth 1 https://github.com/prometheus/pushgateway.git \
  && cd pushgateway \
  && make
 
