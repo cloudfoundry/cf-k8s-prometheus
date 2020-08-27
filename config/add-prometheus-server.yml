@@ -385,7 +385,6 @@ spec:
   selector:
     component: server
     metrics: prometheus
-    release: something
   sessionAffinity: None
   type: "ClusterIP"
 ---

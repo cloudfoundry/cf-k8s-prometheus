@@ -10,27 +10,27 @@ metadata:
     metrics: prometheus
   namespace: #@ data.values.system_namespace
 ---
-#! Source: prometheus-pushgateway/templates/service.yaml
+#! Source: prometheus/templates/services/pushgateway.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus-pushgateway
   annotations:
-    {}
+    prometheus.io/probe: pushgateway
   labels:
     component: pushgateway
     metrics: prometheus
+  name: prometheus-pushgateway
   namespace: #@ data.values.system_namespace
 spec:
-  type: ClusterIP
   ports:
-    - port: 9091
-      targetPort: 9091
+    - name: http
+      port: 9091
       protocol: TCP
-      name: http
+      targetPort: 9091
   selector:
     component: pushgateway
     metrics: prometheus
+  type: ClusterIP
 ---
 #! Source: prometheus/templates/rbac/pushgateway-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -59,29 +59,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: prometheus-pushgateway
----
-#! Source: prometheus/templates/services/pushgateway.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    prometheus.io/probe: pushgateway
-  labels:
-    component: pushgateway
-    metrics: prometheus
-  name: prometheus-pushgateway
-  namespace: default
-spec:
-  ports:
-    - name: http
-      port: 9091
-      protocol: TCP
-      targetPort: 9091
-  selector:
-    component: "pushgateway"
-    app: prometheus
-    release: prometheus
-  type: "ClusterIP"
 ---
 #! Source: prometheus-pushgateway/templates/deployment.yaml
 apiVersion: apps/v1
