@@ -55,8 +55,9 @@ spec:
         component: pushgateway
         metrics: prometheus
       annotations:
+        traffic.sidecar.istio.io/excludeInboundPorts: "9091"
         prometheus.io/scrape: "true"
-        prometheus.io/port: "9090"
+        prometheus.io/port: "9091"
         prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: prometheus-pushgateway
