@@ -17,9 +17,8 @@ function buildAndReplaceImage {
 }
 
 
-prometheusVersion="v2.20.1"
-buildAndReplaceImage prometheus-server $prometheusVersion ${REPO_DIR}/prometheus/server Dockerfile
-buildAndReplaceImage prometheus-pushgateway $prometheusVersion ${REPO_DIR}/prometheus/pushgateway Dockerfile
+buildAndReplaceImage prometheus-server v2.20.1 ${REPO_DIR}/prometheus/server Dockerfile
+buildAndReplaceImage prometheus-pushgateway v1.2.0 ${REPO_DIR}/prometheus/pushgateway Dockerfile
 
 buildAndReplaceImage statsd_exporter v0.15.0 ${REPO_DIR}/exporters/statsd_exporter Dockerfile statsd_exporter
 buildAndReplaceImage node_exporter v0.18.1 ${REPO_DIR}/exporters/node_exporter Dockerfile

@@ -1,40 +1,32 @@
 #@ load("@ytt:data", "data")
 
-#@ load("@ytt:overlay", "overlay")
-#@overlay/match by=overlay.and_op(overlay.subset({"metadata":{"name":"cf-system"}}), overlay.subset({"kind": "Namespace"}))
----
-metadata:
-  labels:
-    #@overlay/match missing_ok=True
-    cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-prometheus-scrape
-  namespace: #@ data.values.workloads_namespace
+  name: allow-prometheus-components
+  namespace: #@ data.values.system_namespace
 spec:
-  podSelector: {}
+  podSelector:
+      matchLabels:
+        metrics: prometheus
   policyTypes:
   - Ingress
+  - Egress
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
-      podSelector:
-        matchLabels:
-          what-am-i: prometheus
+  - {}
+  egress:
+  - {}
+
 ---
 #! Source: prometheus/templates/server-serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
   namespace: #@ data.values.system_namespace
   annotations:
     {}
@@ -45,9 +37,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
   namespace: #@ data.values.system_namespace
 data:
   alerting_rules.yml: |
@@ -309,9 +301,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
   namespace: #@ data.values.system_namespace
 spec:
   accessModes:
@@ -325,9 +317,9 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
 rules:
   - apiGroups:
       - ""
@@ -363,26 +355,26 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
 subjects:
   - kind: ServiceAccount
-    name: cf-for-k8s-prometheus-server
+    name: prometheus-server
     namespace: #@ data.values.system_namespace
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cf-for-k8s-prometheus-server
+  name: prometheus-server
 ---
 #! Source: prometheus/templates/server-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
   namespace: #@ data.values.system_namespace
 spec:
   ports:
@@ -391,8 +383,8 @@ spec:
       protocol: TCP
       targetPort: 9090
   selector:
-    component: "server"
-    app: prometheus
+    component: server
+    metrics: prometheus
     release: something
   sessionAffinity: None
   type: "ClusterIP"
@@ -402,24 +394,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    component: "server"
-    app: prometheus
-  name: cf-for-k8s-prometheus-server
+    component: server
+    metrics: prometheus
+  name: prometheus-server
   namespace: #@ data.values.system_namespace
 spec:
   selector:
     matchLabels:
-      component: "server"
-      app: prometheus
+      component: server
+      metrics: prometheus
   replicas: 1
   template:
     metadata:
       labels:
-        component: "server"
-        app: prometheus
-        what-am-i: prometheus
+        component: server
+        metrics: prometheus
     spec:
-      serviceAccountName: cf-for-k8s-prometheus-server
+      serviceAccountName: prometheus-server
       containers:
         - name: prometheus-server
           image: "oratos/prometheus-server:v2.20.1"
@@ -466,7 +457,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: cf-for-k8s-prometheus-server
+            name: prometheus-server
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: cf-for-k8s-prometheus-server
+            claimName: prometheus-server
