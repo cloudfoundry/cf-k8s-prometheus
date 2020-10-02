@@ -1,11 +1,12 @@
 #@ load("@ytt:data", "data")
+#@ load("/namespaces.star", "system_namespace", "workloads_namespace")
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-components
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   podSelector:
       matchLabels:
@@ -23,7 +24,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scrape
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   podSelector: {}
   policyTypes:
@@ -42,7 +43,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scrape
-  namespace: #@ data.values.workloads_namespace
+  namespace: #@ workloads_namespace()
 spec:
   podSelector: {}
   policyTypes:
@@ -65,7 +66,7 @@ metadata:
     component: server
     metrics: prometheus
   name: prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
   annotations:
     {}
 ---
@@ -78,7 +79,7 @@ metadata:
     component: server
     metrics: prometheus
   name: prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 data:
   alerting_rules.yml: |
     {}
@@ -354,7 +355,7 @@ metadata:
     component: server
     metrics: prometheus
   name: prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   accessModes:
     - ReadWriteOnce
@@ -411,7 +412,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus-server
-    namespace: #@ data.values.system_namespace
+    namespace: #@ system_namespace()
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -425,7 +426,7 @@ metadata:
     component: server
     metrics: prometheus
   name: prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   ports:
     - name: http
@@ -446,7 +447,7 @@ metadata:
     component: server
     metrics: prometheus
   name: prometheus-server
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   selector:
     matchLabels:

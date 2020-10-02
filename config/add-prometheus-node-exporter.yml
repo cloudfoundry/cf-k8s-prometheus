@@ -1,11 +1,12 @@
 #@ load("@ytt:data", "data")
+#@ load("/namespaces.star", "system_namespace")
 ---
 #! Source: prometheus-node-exporter/templates/psp.yaml
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: prometheus-node-exporter
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
   labels:
     component: node-exporter
     metrics: prometheus
@@ -57,7 +58,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: prometheus-node-exporter
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
   labels:
     component: node-exporter
     metrics: prometheus
@@ -94,14 +95,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: prometheus-node-exporter
-    namespace: #@ data.values.system_namespace
+    namespace: #@ system_namespace()
 ---
 #! Source: prometheus-node-exporter/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: prometheus-node-exporter
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
   annotations:
     prometheus.io/scrape: "true"
   labels:
@@ -123,7 +124,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: prometheus-node-exporter
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
   labels:
     component: node-exporter
     metrics: prometheus
