@@ -17,7 +17,6 @@ spec:
   egress:
     - {}
 ---
-#! Source: prometheus/templates/server-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -203,7 +202,6 @@ data:
       "version": 4
     }
 ---
-#! Source: prometheus/templates/server-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -251,5 +249,3 @@ spec:
         - name: grafana-dashboards
           configMap:
             name: grafana-dashboards
-
-
