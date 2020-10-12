@@ -24,6 +24,44 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scrape
+  namespace: cf-blobstore
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
+      podSelector:
+        matchLabels:
+          metrics: prometheus
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: cf-db
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          cf-for-k8s.cloudfoundry.org/cf-system-ns: ""
+      podSelector:
+        matchLabels:
+          metrics: prometheus
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
   namespace: #@ system_namespace()
 spec:
   podSelector: {}
@@ -269,12 +307,6 @@ data:
         - __meta_kubernetes_service_name
         target_label: kubernetes_name
     - job_name: kubernetes-pods
-      scheme: https
-      tls_config:
-        ca_file: /etc/istio-certs/root-cert.pem
-        cert_file: /etc/istio-certs/cert-chain.pem
-        key_file: /etc/istio-certs/key.pem
-        insecure_skip_verify: true
       kubernetes_sd_configs:
       - role: pod
       relabel_configs:
@@ -305,12 +337,6 @@ data:
         - __meta_kubernetes_pod_name
         target_label: kubernetes_pod_name
     - job_name: kubernetes-pods-slow
-      scheme: https
-      tls_config:
-        ca_file: /etc/istio-certs/root-cert.pem
-        cert_file: /etc/istio-certs/cert-chain.pem
-        key_file: /etc/istio-certs/key.pem
-        insecure_skip_verify: true
       kubernetes_sd_configs:
       - role: pod
       relabel_configs:
@@ -459,84 +485,9 @@ spec:
       labels:
         component: server
         metrics: prometheus
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: prometheus-server
       containers:
-        - name: istio-proxy
-          #@yaml/text-templated-strings
-          image: gcr.io/cf-routing/proxyv2:1.6.4
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 15090
-            protocol: TCP
-            name: http-envoy-prom
-          args:
-          - proxy
-          - sidecar
-          - --domain
-          - $(POD_NAMESPACE).svc.cluster.local
-          - istio-proxy-prometheus
-          - --proxyLogLevel=warning
-          - --proxyComponentLogLevel=misc:error
-          - --controlPlaneAuthPolicy
-          - NONE
-          - --trust-domain=cluster.local
-          env:
-          - name: OUTPUT_CERTS
-            value: /etc/istio-certs
-          - name: JWT_POLICY
-            value: third-party-jwt
-          - name: PILOT_CERT_PROVIDER
-            value: istiod
-          - name: CA_ADDR
-            value: istiod.istio-system.svc:15012
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: INSTANCE_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: SERVICE_ACCOUNT
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.serviceAccountName
-          - name: HOST_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: ISTIO_META_MESH_ID
-            value: cluster.local
-          - name: ISTIO_META_CLUSTER_ID
-            value: Kubernetes
-          readinessProbe:
-            failureThreshold: 30
-            httpGet:
-              path: /healthz/ready
-              port: 15020
-              scheme: HTTP
-            initialDelaySeconds: 1
-            periodSeconds: 2
-            successThreshold: 1
-            timeoutSeconds: 1
-          volumeMounts:
-          - mountPath: /var/run/secrets/istio
-            name: istiod-ca-cert
-          - mountPath: /etc/istio/proxy
-            name: istio-envoy
-          - mountPath: /var/run/secrets/tokens
-            name: istio-token
-          - mountPath: /etc/istio-certs/
-            name: istio-certs
-          - mountPath: /etc/istio/config
-            name: istio-config-volume
         - name: prometheus-server
           image: "oratos/prometheus-server:v2.20.1"
           imagePullPolicy: "IfNotPresent"
@@ -573,8 +524,6 @@ spec:
             - name: storage-volume
               mountPath: /data
               subPath: ""
-            - name: istio-certs
-              mountPath: /etc/istio-certs
       securityContext:
         fsGroup: 65534
         runAsGroup: 65534
@@ -588,25 +537,3 @@ spec:
         - name: storage-volume
           persistentVolumeClaim:
             claimName: prometheus-server
-        - name: istio-config-volume
-          configMap:
-            name: istio
-            optional: true
-        - name: istio-certs
-          emptyDir:
-              medium: Memory
-        - name: istio-envoy
-          emptyDir:
-            medium: Memory
-        - name: istio-token
-          projected:
-            defaultMode: 420
-            sources:
-            - serviceAccountToken:
-                audience: istio-ca
-                expirationSeconds: 43200
-                path: istio-token
-        - name: istiod-ca-cert
-          configMap:
-              defaultMode: 419
-              name: istio-ca-root-cert
