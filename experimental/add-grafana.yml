@@ -1,10 +1,11 @@
 #@ load("@ytt:data", "data")
+#@ load("/namespaces.star", "system_namespace")
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-grafana-components
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   podSelector:
     matchLabels:
@@ -23,7 +24,7 @@ metadata:
   labels:
     component: grafana
   name: grafana
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   ports:
     - name: http
@@ -41,7 +42,7 @@ metadata:
   labels:
     component: grafana
   name: grafana-datasources
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 data:
   prometheus.yml: |
     apiVersion: 1
@@ -58,7 +59,7 @@ metadata:
   labels:
     component: grafana
   name: grafana-dashboards
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 data:
   dashboard.yml: |
     apiVersion: 1
@@ -208,7 +209,7 @@ metadata:
   labels:
     component: grafana
   name: grafana
-  namespace: #@ data.values.system_namespace
+  namespace: #@ system_namespace()
 spec:
   selector:
     matchLabels:

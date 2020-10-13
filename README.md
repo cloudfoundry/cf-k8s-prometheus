@@ -13,10 +13,16 @@ include the `config` directory as shown below:
 ytt -f ${WORKSPACE}/cf-for-k8s/config -f ${WORKSPACE}/cf-k8s-prometheus/config -f ${TMP_DIR}/cf-values.yml > ${TMP_DIR}/cf-for-k8s-rendered.yml
 ```
 
+To view the Prometheus UI, use `kubectl port-forward <prometheus-server-pod>
+-n cf-system 9090`.
+
 If you wish to deploy Grafana alongside Prometheus:
 
 ```
 ytt -f ${WORKSPACE}/cf-for-k8s/config -f ${WORKSPACE}/cf-k8s-prometheus/config -f ${WORKSPACE}/cf-k8s-prometheus/experimental/add-grafana.yml -f ${TMP_DIR}/cf-values.yml > ${TMP_DIR}/cf-for-k8s-rendered.yml
 ```
+
+To view Grafana, use `kubectl port-forward <grafana-pod>
+-n cf-system 3000`.
 
 Default username/password is `admin/admin` and any changes you make in the UI will be blown away on the next deployment update.
