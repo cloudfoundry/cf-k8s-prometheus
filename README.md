@@ -26,3 +26,8 @@ To view Grafana, use `kubectl port-forward <grafana-pod>
 -n cf-system 3000`.
 
 Default username/password is `admin/admin` and any changes you make in the UI will be blown away on the next deployment update.
+
+### Have a question or feedback, reach out to us
+
+Reach out to us in the Cloud Foundry Slack channel [#logging-and-metrics](https://cloudfoundry.slack.com/archives/CUW93AF3M).
+To request a response during Mountain Time business hours, tag your message with @interrupt.
