@@ -489,7 +489,7 @@ spec:
       serviceAccountName: prometheus-server
       containers:
         - name: prometheus-server
-          image: "oratos/prometheus-server:v2.20.1"
+          image: "cloudfoundry/prometheus-server:v2.20.1"
           imagePullPolicy: "IfNotPresent"
           args:
             - --storage.tsdb.retention.time=15d

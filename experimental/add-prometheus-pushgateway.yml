@@ -91,7 +91,7 @@ spec:
       serviceAccountName: prometheus-pushgateway
       containers:
         - name: pushgateway
-          image: "oratos/prometheus-pushgateway:v1.2.0"
+          image: "cloudfoundry/prometheus-pushgateway:v1.2.0"
           imagePullPolicy: IfNotPresent
           ports:
             - name: metrics
