@@ -3,10 +3,9 @@ FROM golang:1.13 as builder
 RUN mkdir /workspace
 WORKDIR /workspace
 
-ARG VERSION
-RUN test -n "$VERSION"
-
-RUN git clone --single-branch --branch $VERSION --depth 1 https://github.com/prometheus/statsd_exporter.git && \
+RUN statsd_version=$(curl --silent https://api.github.com/repos/prometheus/statsd_exporter/releases/latest | grep '"tag_name":' | sed -E 's#.*"([^"]+)".*#\1#') && \
+    echo "Fetching and building statsd_exporter version ${statsd_version}" && \
+    git clone --single-branch --branch ${statsd_version} --depth 1 https://github.com/prometheus/statsd_exporter.git && \
     cd statsd_exporter && \
     make common-build
 
